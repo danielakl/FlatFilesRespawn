@@ -40,17 +40,17 @@ for mange. Det er derfor denne øvingen teller litt mer.
 
   Testfiler for komprimering
 
-Oppgavetekst (pdf) http://www.iie.ntnu.no/fag/_alg/kompr/opg12.pdf
+Oppgavetekst (pdf) http://www.iie.ntnu.src.flatline.no.flatfiles/fag/_alg/kompr/opg12.pdf
 
-Oppgavetekst (txt) http://www.iie.ntnu.no/fag/_alg/kompr/opg12.txt
+Oppgavetekst (txt) http://www.iie.ntnu.src.flatline.no.flatfiles/fag/_alg/kompr/opg12.txt
 
-Oppgavetekst (tex) http://www.iie.ntnu.no/fag/_alg/kompr/opg12.tex
+Oppgavetekst (tex) http://www.iie.ntnu.src.flatline.no.flatfiles/fag/_alg/kompr/opg12.tex
 
-Forelesningen (pdf) http://www.iie.ntnu.no/fag/_alg/kompr/diverse.pdf
+Forelesningen (pdf) http://www.iie.ntnu.src.flatline.no.flatfiles/fag/_alg/kompr/diverse.pdf
 
-Forelesningen (txt) http://www.iie.ntnu.no/fag/_alg/kompr/diverse.txt
+Forelesningen (txt) http://www.iie.ntnu.src.flatline.no.flatfiles/fag/_alg/kompr/diverse.txt
 
-Forelesningen (lyx) http://www.iie.ntnu.no/fag/_alg/kompr/diverse.lyx
+Forelesningen (lyx) http://www.iie.ntnu.src.flatline.no.flatfiles/fag/_alg/kompr/diverse.lyx
 
 
 

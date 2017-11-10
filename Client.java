@@ -1,5 +1,5 @@
-import no.flatline.Compress;
-import no.flatline.Decompress;
+import no.flatfiles.Compress;
+import no.flatfiles.Decompress;
 
 import java.io.*;
 import java.util.ArrayList;
