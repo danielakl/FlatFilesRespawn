@@ -10,7 +10,7 @@ import java.util.Scanner;
  * @version 0.1.0
  */
 public final class Decompress {
-    public static void decompress(File source, File destination, File treeFile) throws Exception{
+    public static void decompress(File source, File destination, File treeFile) throws Exception {
         int[] tree = readFreq(treeFile);
 //        for(int i = 0; i < tree.length; i++){
 //            System.out.println(tree[i]);
