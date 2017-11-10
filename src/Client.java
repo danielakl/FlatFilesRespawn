@@ -1,5 +1,4 @@
-import no.flatfiles.Compress;
-import no.flatfiles.Decompress;
+import no.flatline.Huffman;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -35,16 +34,18 @@ public class Client {
             }
         }
 
+        Huffman h = new Huffman();
+
         switch (mode) {
             case COMPRESS: {
                 for (File file : files) {
-                    Compress.compress(file);
+                    h.compress(file);
                 }
                 break;
             }
             case DECOMPRESS: {
                 for (File file : files) {
-                    Decompress.decompress(file);
+                    h.decompress(file);
                 }
                 break;
             }
