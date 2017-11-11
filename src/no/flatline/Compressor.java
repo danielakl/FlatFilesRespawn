@@ -9,16 +9,16 @@ import java.io.File;
 public interface Compressor {
 
     /**
-     * Compresses a file into a different file.
-     *  @param src the source file to compress.
+     * Compresses a file.
      *
+     *  @param src the source file to compress.
      */
     void compress(File src);
 
     /**
-     * Decompresses a file into a different file.
-     *  @param src the source file to decompress.
+     * Decompresses a file.
      *
+     *  @param src the source file to decompress.
      */
     void decompress(File src);
 }
