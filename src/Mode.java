@@ -6,10 +6,10 @@ public enum Mode {
     /**
      * Sets the client to compress given files.
      */
-    COMPRESS(),
+    Compress(),
 
     /**
      * Sets the client to decompress given files.
      */
-    DECOMPRESS();
+    Decompress();
 }
