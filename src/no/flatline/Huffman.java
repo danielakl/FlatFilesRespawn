@@ -60,6 +60,7 @@ public class Huffman implements Compressor {
                         sb.append(table.get(character));
                     }
                 }
+                dos.writeBytes(fromBitString(sb.toString()));
                 if (len >= dis.available()) {
                     len = dis.available();
                     stop = true;
@@ -72,6 +73,18 @@ public class Huffman implements Compressor {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String fromBitString(String bitstring) {
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < bitstring.length()-16; i += 16) {
+            String sub1 = bitstring.substring(i, i+8);
+            String sub2 = bitstring.substring(i+8, i+16);
+            int b1 = Integer.parseInt(sub1, 2);
+            int b2 = Integer.parseInt(sub2, 2);
+            s.append((char)(((b1 & 0xff) << 8) | (b2 & 0xff)));
+        }
+        return s.toString();
     }
 
     @Override
@@ -211,7 +224,7 @@ public class Huffman implements Compressor {
      * @author Rolv-Arild Braaten
      * @since 0.0.1
      */
-    private class Node implements Comparable<Node> {
+    private static class Node implements Comparable<Node> {
 
         static final char LINK_CHAR = Character.MIN_VALUE;
 
@@ -245,5 +258,9 @@ public class Huffman implements Compressor {
             if (freqCompare != 0) return freqCompare;
             return Integer.compare(this.character, o.character);
         }
+    }
+
+    public static void main(String[] args) {
+
     }
 }
