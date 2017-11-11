@@ -1,22 +1,24 @@
 package no.flatline;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
  * @author Rolv-Arild Braaten
  * @author Daniel Klock
- * @version 0.0.1
+ * @author Joakim Sæther
+ * @version 0.0.2
  */
 public class Huffman implements Compressor {
-    @Deprecated // Block size is now calculated based on the file to compress.
+
     private static final int DEFAULT_BLOCK_SIZE = 256;
-    private int blockSize;
+    private  int blockSize;
 
     /**
      * Default constructor.
      */
-    @Deprecated // Block size is now calculated based on the file to compress.
     public Huffman() {
         this(DEFAULT_BLOCK_SIZE);
     }
@@ -28,27 +30,34 @@ public class Huffman implements Compressor {
      *
      * @param blockSize the block size to compress with.
      */
-    @Deprecated // Block size is now calculated based on the file to compress.
     public Huffman(int blockSize) {
         this.blockSize = blockSize;
     }
 
     @Override
-    public void compress(File src) {
+    public void compress(File src)  {
         try{
             calcBlockSize(src);
-            FileReader fr = new FileReader(src);
-            BufferedReader br = new BufferedReader(fr);
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
+            DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
+            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File("/src2"))));
+            byte[] b = new byte[blockSize];
+            int off = 0;
+            int len = blockSize;
+            dis.readFully(b, off, len);
+            String s = new String(b);
+            while(s != null){
+                Node root = getTree(new String(b));
+                final StringBuilder sb = new StringBuilder();
+                final Map<Character, String> table = buildTable(root);
+                for(final char character : s.toCharArray()){
+                    if(table.get(character) != null){
+                        sb.append(table.get(character));
+                    }
+                }
+                off += blockSize;
+                dis.readFully(b, off, len);
+                s = new String(b);
             }
-            String everything = sb.toString();
-            getTree(everything);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -57,6 +66,32 @@ public class Huffman implements Compressor {
     @Override
     public void decompress(File src) {
 
+    }
+
+    /**
+     * Creates a map where the charcters can be mapped to their corresponding compressed bit string.
+     * @param root is the root node of the Huffman tree.
+     * @return a map with the characters used in the text mapped to their bit string.
+     */
+    private Map<Character, String> buildTable(final Node root){
+        final Map<Character, String> table = new HashMap<>();
+        buildTableImpl(root, "", table);
+        return table;
+    }
+
+    /**
+     * Maps the characters to their corresponding compressed bit string.
+     * @param node is the root node of the Huffman tree.
+     * @param s is the compressed string at the current location in the Huffman tree.
+     * @param table is a table with all the used characters.
+     */
+    private void buildTableImpl(final Node node, final String s, final Map<Character, String> table){
+        if(!node.isLeaf()){
+            buildTableImpl(node.leftChild, s + '0', table);
+            buildTableImpl(node.rightChild, s + '1', table);
+        } else{
+            table.put(node.character, s);
+        }
     }
 
     /**
