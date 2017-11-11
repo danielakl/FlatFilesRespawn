@@ -63,18 +63,22 @@ public final class Client {
                 if (input.matches("^[0-9]+$")) {
                     int inputInt = Integer.parseInt(input);
                     if (inputInt == 0) {
-                        // Change path to parent directory.
+                        currentPath = (currentPath.getParent() != null) ? currentPath.getParent() : currentPath;
                     } else if (inputInt == (filesInCurrentDir.length + 1)) {
-                        executeAction(MODE);
+                        System.out.println(MODE.name() + "ing...");
+                        long time = executeAction(MODE);
+                        System.out.println("Time spent " + MODE.name() + "ing: " + time + "seconds.");
+                        files.clear();
+                        break;
                     } else {
-                        if (filesInCurrentDir[inputInt - 1].isFile()) {
-
-                        } else if (filesInCurrentDir[inputInt - 1].isDirectory()) {
-                            // Change currentPath
+                        File selectedFile = filesInCurrentDir[inputInt - 1];
+                        if (selectedFile.isFile()) {
+                            files.add(selectedFile);
+                        } else if (selectedFile.isDirectory()) {
+                            currentPath = currentPath.resolve(selectedFile.toPath());
                         }
                     }
                 }
-                return 0;
             } while (true);
         } while (true);
     }
@@ -88,8 +92,9 @@ public final class Client {
             // Set mode for compression or decompression.
             if (arg.equals("decompress")) {
                 MODE = Mode.Decompress;
-                // Create list of files to compress or decompress.
-            } else if (arg.matches("^.+\\..+$")) {
+            }
+            // Create list of files to compress or decompress.
+            else if (arg.matches("^.+\\..+$")) {
                 File file = new File(arg);
                 if (file.canRead()) {
                     files.add(file);
@@ -103,9 +108,10 @@ public final class Client {
      * Compress or Decompress all files currently within the files array.
      * @param action - Compress or Decompress files.
      */
-    private static void executeAction(Mode action) {
+    private static long executeAction(Mode action) {
         Huffman h = new Huffman();
 
+        long start = System.currentTimeMillis();
         switch (action) {
             case Decompress: {
                 for (File file : files) {
@@ -120,6 +126,7 @@ public final class Client {
                 break;
             }
         }
+        return System.currentTimeMillis() - start;
     }
 
     /**
