@@ -71,6 +71,10 @@ public class Huffman implements Compressor {
                     stop = true;
                 }
                 dis.readFully(b, 0, len);
+                for(int i = 0; i < b.length; i ++){
+                    int i1 = b[i];
+                    freq[i1] ++;
+                }
                 s = new String(b);
             }
             dis.close();
