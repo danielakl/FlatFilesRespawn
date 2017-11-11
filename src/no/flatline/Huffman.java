@@ -1,6 +1,9 @@
 package no.flatline;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
 import java.util.PriorityQueue;
 
 /**
@@ -31,8 +34,23 @@ public class Huffman implements Compressor {
     }
 
     @Override
-    public void compress(File src) {
+    public void compress(File src)  {
+        try{
+            FileReader fr = new FileReader(src);
+            BufferedReader br = new BufferedReader(fr);
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
 
+            while (line != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
+            }
+            String everything = sb.toString();
+            getTree(everything);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
