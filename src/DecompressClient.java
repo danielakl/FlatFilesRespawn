@@ -20,7 +20,7 @@ public final class DecompressClient {
      */
     private static void cliMode() {
         Path currentPath = Paths.get(System.getProperty("user.dir"));
-        System.out.println("Welcome to FlatFile's ultimate compression tool\u2122.");
+        System.out.println("Welcome to FlatFile's ultimate decompression tool\u2122.");
         do {
             System.out.println("Add files to decompress.");
             if (files.size() != 0) {

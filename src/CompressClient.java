@@ -68,7 +68,7 @@ public final class CompressClient {
      */
     private static void parseArgs(String[] args) {
         for (String arg : args) {
-            // Create list of files to compress or decompress.
+            // Create list of files to compress.
             if (arg.matches("^.+\\..+$")) {
                 File file = new File(arg);
                 if (file.canRead()) {
