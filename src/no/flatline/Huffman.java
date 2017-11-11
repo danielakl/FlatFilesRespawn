@@ -58,6 +58,7 @@ public class Huffman implements Compressor {
 
     }
 
+
     /**
      * Returns the root of the corresponding Huffman Tree to a string
      *
@@ -67,12 +68,20 @@ public class Huffman implements Compressor {
     private Node getTree(String s) {
         char[] chars = s.toCharArray();
         int[] freq = new int[Character.MAX_VALUE]; // one entry for each possible character
-        int diffCharCount = 0; // so priority queue doesn't need to expand later
         for (char c : chars) {
-            if (freq[c] == 0) diffCharCount++;
             freq[c]++;
         }
-        PriorityQueue<Node> nodes = new PriorityQueue<>(diffCharCount);
+        return getTree(freq);
+    }
+
+    /**
+     * Returns the root of the corresponding Huffman Tree to a frequency array
+     *
+     * @param freq the frequency array to use on the string
+     * @return the root of the corresponding Huffman Tree to {@code freq}
+     */
+    private Node getTree(int[] freq) {
+        PriorityQueue<Node> nodes = new PriorityQueue<>();
         for (char c = 0; c < freq.length; c++) {
             if (freq[c] != 0) {
                 nodes.add(new Node(c, freq[c]));
@@ -99,22 +108,22 @@ public class Huffman implements Compressor {
      */
     private class Node implements Comparable<Node> {
 
-        private static final char LINK_CHAR = 0;
+        static final char LINK_CHAR = Character.MIN_VALUE;
 
         final char character;
         final int freq;
         final Node leftChild;
         final Node rightChild;
 
-        private Node(final char character, final int freq, final Node leftChild, final Node rightChild){
+        Node(final char character, final int freq, final Node leftChild, final Node rightChild){
             this.character = character;
             this.freq = freq;
             this.leftChild = leftChild;
             this.rightChild = rightChild;
         }
 
-        Node(final int character, final int freq) {
-            this(LINK_CHAR, freq, null, null);
+        Node(final char character, final int freq) {
+            this(character, freq, null, null);
         }
 
         Node(final int freq, final Node leftChild, final Node rightChild) {
