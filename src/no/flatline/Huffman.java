@@ -103,7 +103,7 @@ public class Huffman implements Compressor {
     private void calcBlockSize(File src) throws IOException {
         DataInputStream dis = new DataInputStream(new FileInputStream(src));
         int bytes = dis.available();
-        blockSize = bytes / 10;
+        blockSize = (int) Math.ceil(bytes / 10.0);
     }
 
     /**
