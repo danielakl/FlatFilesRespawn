@@ -48,14 +48,15 @@ public class Huffman implements Compressor {
             int len = blockSize;
             dos.writeInt(blockSize);
             dis.readFully(b, 0, len);
+            dos.write(b);
             String s = new String(b);
             boolean stop = false;
             while(!stop) {
-                Node root = getTree(new String(b));
-                final StringBuilder sb = new StringBuilder();
-                final Map<Character, String> table = buildTable(root);
-                for(final char character : s.toCharArray()){
-                    if(table.get(character) != null){
+                Node root = getTree(s);
+                StringBuilder sb = new StringBuilder();
+                Map<Character, String> table = buildTable(root);
+                for (char character : s.toCharArray()) {
+                    if (table.get(character) != null) {
                         sb.append(table.get(character));
                     }
                 }
@@ -66,6 +67,8 @@ public class Huffman implements Compressor {
                 dis.readFully(b, 0, len);
                 s = new String(b);
             }
+            dis.close();
+            dos.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
