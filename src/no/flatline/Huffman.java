@@ -1,6 +1,8 @@
 package no.flatline;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -14,7 +16,7 @@ import java.util.PriorityQueue;
 public class Huffman implements Compressor {
 
     private static final int DEFAULT_BLOCK_SIZE = 256;
-    private  int blockSize;
+    private int blockSize;
 
     /**
      * Default constructor.
@@ -35,17 +37,19 @@ public class Huffman implements Compressor {
     }
 
     @Override
-    public void compress(File src)  {
-        try{
+    public void compress(File src) {
+        try {
             calcBlockSize(src);
             DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File("/src2"))));
+            Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
+            File compFile = Files.createFile(compFilePath).toFile();
+            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
             byte[] b = new byte[blockSize];
             int off = 0;
             int len = blockSize;
             dis.readFully(b, off, len);
             String s = new String(b);
-            while(s != null){
+            while(s != null) {
                 Node root = getTree(new String(b));
                 final StringBuilder sb = new StringBuilder();
                 final Map<Character, String> table = buildTable(root);
@@ -58,7 +62,7 @@ public class Huffman implements Compressor {
                 dis.readFully(b, off, len);
                 s = new String(b);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -69,7 +73,7 @@ public class Huffman implements Compressor {
     }
 
     /**
-     * Creates a map where the charcters can be mapped to their corresponding compressed bit string.
+     * Creates a map where the characters can be mapped to their corresponding compressed bit string.
      * @param root is the root node of the Huffman tree.
      * @return a map with the characters used in the text mapped to their bit string.
      */

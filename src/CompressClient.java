@@ -47,7 +47,7 @@ public final class CompressClient {
                 } else if (inputInt == (filesInCurrentDir.length + 1)) {
                     System.out.println("Compressing...");
                     long time = compress();
-                    System.out.println("Time spent compressing: " + time + "seconds.");
+                    System.out.println("Time spent compressing: " + time + " seconds.");
                     files.clear();
                     break;
                 } else {

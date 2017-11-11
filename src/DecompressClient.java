@@ -45,7 +45,7 @@ public final class DecompressClient {
                 } else if (inputInt == (filesInCurrentDir.length + 1)) {
                     System.out.println("Decompressing...");
                     long time = decompress();
-                    System.out.println("Time spent decompressing: " + time + "seconds.");
+                    System.out.println("Time spent decompressing: " + time + " seconds.");
                     files.clear();
                     break;
                 } else {
