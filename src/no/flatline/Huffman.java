@@ -14,7 +14,7 @@ import java.util.PriorityQueue;
 public class Huffman implements Compressor {
 
     private static final int DEFAULT_BLOCK_SIZE = 256;
-    private  int blockSize;
+    private int blockSize;
 
     /**
      * Default constructor.
@@ -64,7 +64,7 @@ public class Huffman implements Compressor {
     }
 
     @Override
-    public void decompress(File src) {
+    public void decompress(File src) { // TODO
 
     }
 
@@ -86,12 +86,28 @@ public class Huffman implements Compressor {
      * @param table is a table with all the used characters.
      */
     private void buildTableImpl(final Node node, final String s, final Map<Character, String> table){
-        if(!node.isLeaf()){
+        if (!node.isLeaf()) {
             buildTableImpl(node.leftChild, s + '0', table);
             buildTableImpl(node.rightChild, s + '1', table);
-        } else{
+        } else {
             table.put(node.character, s);
         }
+    }
+
+    /**
+     * Generates a bit string from a map and a string
+     *
+     * @param table the character to bit string map to use.
+     * @param s the string to convert into a bit string.
+     * @return a bit string generated from {@code table} and {@code s}
+     */
+    private String getBitString(Map<Character, String> table, String s) {
+        char[] chars = s.toCharArray();
+        StringBuilder bits = new StringBuilder();
+        for (char c : chars) {
+            bits.append(table.get(c));
+        }
+        return bits.toString();
     }
 
     /**
@@ -143,6 +159,37 @@ public class Huffman implements Compressor {
             nodes.add(link);
         }
         return nodes.poll();
+    }
+
+    /**
+     * Generates a string from a bit string and a huffman tree.
+     *
+     * @param root the root of the huffman tree.
+     * @param bits the string of bits.
+     * @return the string generated from {@code root} and {@code bits}
+     */
+    private String getString(Node root, String bits) {
+        StringBuilder s = new StringBuilder();
+        char[] bitChars = bits.toCharArray();
+        Node n = root;
+        for (char c : bitChars) {
+            switch (c) {
+                case '0':
+                    n = n.leftChild;
+                    break;
+                case '1':
+                    n = n.rightChild;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Bit string contains illegal characters");
+            }
+            if (!n.isLeaf()) {
+                s.append(n.character);
+                n = root;
+            }
+        }
+        if (n != root) System.out.println("Unfinished bits");
+        return s.toString();
     }
 
     /**
