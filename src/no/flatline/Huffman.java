@@ -44,10 +44,15 @@ public class Huffman implements Compressor {
             Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
             File compFile = Files.createFile(compFilePath).toFile();
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
+            int[] freq = new int[65536];
             byte[] b = new byte[blockSize];
             int len = blockSize;
-            dos.writeInt(blockSize);
             dis.readFully(b, 0, len);
+            for(int i = 0; i < b.length; i ++){
+                int i1 = b[i];
+                freq[i1] ++;
+            }
+            dos.writeInt(blockSize);
             dos.write(b);
             String s = new String(b);
             boolean stop = false;
@@ -258,9 +263,5 @@ public class Huffman implements Compressor {
             if (freqCompare != 0) return freqCompare;
             return Integer.compare(this.character, o.character);
         }
-    }
-
-    public static void main(String[] args) {
-
     }
 }
