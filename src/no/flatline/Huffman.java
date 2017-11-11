@@ -35,7 +35,7 @@ public class Huffman implements Compressor {
     }
 
     @Override
-    public void compress(File src)  {
+    public void compress(File src) {
         try{
             calcBlockSize(src);
             DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
@@ -69,7 +69,7 @@ public class Huffman implements Compressor {
     }
 
     /**
-     * Creates a map where the charcters can be mapped to their corresponding compressed bit string.
+     * Creates a map where the characters can be mapped to their corresponding compressed bit string.
      * @param root is the root node of the Huffman tree.
      * @return a map with the characters used in the text mapped to their bit string.
      */

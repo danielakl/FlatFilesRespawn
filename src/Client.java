@@ -1,6 +1,6 @@
 import no.flatline.Huffman;
 
-import java.io.*;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * @author Joppe
+ * @author Joakim Sæther
  * @author Daniel Klock
  * @version 0.1.0
  */

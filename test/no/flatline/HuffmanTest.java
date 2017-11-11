@@ -1,6 +1,5 @@
 package no.flatline;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -10,7 +9,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Daniel Klock
@@ -69,25 +69,27 @@ public class HuffmanTest {
     }
 
     @Test
-    public void compression_and_decompression_size_and_content() throws Exception {
+    public void compressTest() {
         Huffman h = new Huffman();
-
-
+        long size = FILE_1.length();
         h.compress(FILE_1);
-        h.decompress(FILE_2);
+        assertTrue(FILE_1.length() < size);
+    }
 
-        BufferedReader br1 = new BufferedReader(new FileReader(FILE_1));
-        BufferedReader br2 = new BufferedReader(new FileReader(FILE_2));
+    @Test
+    public void decompressTest() throws IOException {
+        Huffman h = new Huffman();
+        // TODO create copy of file to test for equality
+        File f = null;
+        h.compress(FILE_1);
+        h.decompress(FILE_1);
 
-        assertTrue(FILE_2.length() <= FILE_1.length());
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(FILE_1)));
+        DataInputStream dat = new DataInputStream(new BufferedInputStream(new FileInputStream(FILE_2)));
 
-        assertTrue(FILE_1.length() == FILE_3.length());
-
-        String s1;
-        String s2;
-        while ((s1 = br1.readLine()) != null) {
-            s2 = br2.readLine();
-            assertTrue(s1.equals(s2));
+        int c;
+        while ((c = dis.read()) != -1) {
+            assertEquals(c, dat.read());
         }
     }
 }
