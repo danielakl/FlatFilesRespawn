@@ -6,17 +6,17 @@ import java.util.PriorityQueue;
 /**
  * @author Rolv-Arild Braaten
  * @author Daniel Klock
- * @version 0.0.1
+ * @author Joakim Sæther
+ * @version 0.0.2
  */
 public class Huffman implements Compressor {
-    @Deprecated // Block size is now calculated based on the file to compress.
+
     private static final int DEFAULT_BLOCK_SIZE = 256;
-    private int blockSize;
+    private  int blockSize;
 
     /**
      * Default constructor.
      */
-    @Deprecated // Block size is now calculated based on the file to compress.
     public Huffman() {
         this(DEFAULT_BLOCK_SIZE);
     }
@@ -28,27 +28,27 @@ public class Huffman implements Compressor {
      *
      * @param blockSize the block size to compress with.
      */
-    @Deprecated // Block size is now calculated based on the file to compress.
     public Huffman(int blockSize) {
         this.blockSize = blockSize;
     }
 
     @Override
-    public void compress(File src) {
+    public void compress(File src)  {
         try{
             calcBlockSize(src);
-            FileReader fr = new FileReader(src);
-            BufferedReader br = new BufferedReader(fr);
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
+            DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
+            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File("/src2"))));
+            byte[] b = new byte[blockSize];
+            int off = 0;
+            int len = blockSize;
+            dis.readFully(b, off, len);
+            String s = new String(b);
+            while(s != null){
+                Node root = getTree(new String(b));
+                off += blockSize;
+                dis.readFully(b, off, len);
+                s = new String(b);
             }
-            String everything = sb.toString();
-            getTree(everything);
         } catch (Exception e){
             e.printStackTrace();
         }
