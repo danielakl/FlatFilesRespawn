@@ -44,7 +44,7 @@ public final class DecompressClient {
                     currentPath = (currentPath.getParent() != null) ? currentPath.getParent() : currentPath;
                 } else if (inputInt == (filesInCurrentDir.length + 1)) {
                     System.out.println("Decompressing...");
-                    long time = decompress();
+                    double time = decompress() / 1000.0;
                     System.out.println("Time spent decompressing: " + time + " seconds.");
                     files.clear();
                     break;

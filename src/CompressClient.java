@@ -46,7 +46,7 @@ public final class CompressClient {
                     currentPath = (currentPath.getParent() != null) ? currentPath.getParent() : currentPath;
                 } else if (inputInt == (filesInCurrentDir.length + 1)) {
                     System.out.println("Compressing...");
-                    long time = compress();
+                    double time = compress() / 1000.0;
                     System.out.println("Time spent compressing: " + time + " seconds.");
                     files.clear();
                     break;
