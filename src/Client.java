@@ -1,5 +1,4 @@
-import no.flatfiles.Compress;
-import no.flatfiles.Decompress;
+import no.flatline.Huffman;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ public final class Client {
                            "Option: ");
         Scanner scanner = new Scanner(System.in);
         int option = scanner.nextInt();
-        
+
     }
 
     /**
@@ -55,18 +54,18 @@ public final class Client {
      * @param action - Compress or Decompress files.
      */
     private static void executeAction(Mode action) {
+        Huffman h = new Huffman();
+
         switch (action) {
             case DECOMPRESS: {
                 for (File file : files) {
-                    // TODO: Rewrite Decompress class.
-//                    Decompress.decompress(file);
+                    h.decompress(file);
                 }
                 break;
             }
             default: {
                 for (File file : files) {
-                    // TODO: Rewrite Compress class.
-//                    Compress.compress(file);
+                    h.compress(file);
                 }
                 break;
             }
