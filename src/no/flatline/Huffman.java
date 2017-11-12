@@ -70,7 +70,7 @@ public class Huffman implements Compressor {
                         if (bits != null) build.append(bits);
                     }
 
-                    dos.writeBytes(fromBitString(build.toString()));
+                    dos.write(fromBitString(build.toString()));
 
                     len = dis.available();
                 }
@@ -82,7 +82,7 @@ public class Huffman implements Compressor {
                     String bits = table.get((byte) (s.charAt(i) & 0xff));
                     if (bits != null) build.append(bits);
                 }
-                dos.writeBytes(fromBitString(build.toString()));
+                dos.write(fromBitString(build.toString()));
                 dis.close();
                 dos.close();
             } catch (IOException e) {
@@ -111,9 +111,8 @@ public class Huffman implements Compressor {
         }
     }
 
-    private String fromBitString(String bitstring) {
-        byte[] bval = new BigInteger(bitstring, 2).toByteArray();
-        return new String(bval);
+    private byte[] fromBitString(String bitstring) {
+        return new BigInteger(bitstring, 2).toByteArray();
     }
 
     @Override
