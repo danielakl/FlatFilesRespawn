@@ -49,7 +49,7 @@ public class Huffman implements Compressor {
                 if (maxFreq == 0) throw new IllegalArgumentException("Wut");
                 byte first = (byte) (1 + Long.toBinaryString(maxFreq).length() / 8);
                 dos.writeByte(first);
-                for (int i = 1; i < freq.length; i++) {
+                for (int i = 0; i < freq.length; i++) {
                     write(dos, first, freq, i);
                 }
                 dos.writeChar(0);
@@ -71,7 +71,7 @@ public class Huffman implements Compressor {
                         if (bits != null) build.append(bits);
                     }
 
-                    dos.writeBytes(fromBitString(build.toString()));
+                    dos.writeChars(fromBitString(build.toString()));
 
                     len = dis.available();
                 }
@@ -83,7 +83,7 @@ public class Huffman implements Compressor {
                     String bits = table.get(s.charAt(i));
                     if (bits != null) build.append(bits);
                 }
-                dos.writeBytes(fromBitString(build.toString()));
+                dos.writeChars(fromBitString(build.toString()));
                 dis.close();
                 dos.close();
             } catch (IOException e) {
@@ -93,7 +93,8 @@ public class Huffman implements Compressor {
     }
 
     private void write(DataOutputStream dos, byte first, long[] freq, int i) throws IOException {
-        if (freq[i] <= 0) return;
+        if (freq[i] <= 0 && i != 0) return;
+        if (i != 0) dos.writeChar((char) i);
         switch (first) {
             case 1:
                 dos.writeByte((byte) freq[i]);
@@ -109,7 +110,6 @@ public class Huffman implements Compressor {
                 dos.writeLong(freq[i]);
                 break;
         }
-        if (i != 0) dos.writeChar((char) i);
     }
 
     private String fromBitString(String bitstring) {
@@ -131,7 +131,7 @@ public class Huffman implements Compressor {
             if (extension.equals("cff")) {
                 try {
                     DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-                    File dcompFile = FileUtil.createFile(src.getParent(), FileUtil.getBaseName(src));
+                    File dcompFile = FileUtil.createFile(src.getParent(), FileUtil.getBaseName(src).replace(".txt", "v2.txt"));
                     DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dcompFile)));
 
                     byte first = dis.readByte();
@@ -321,7 +321,7 @@ public class Huffman implements Compressor {
      */
     private static class Node implements Comparable<Node> {
 
-        static final char LINK_CHAR = Character.MIN_VALUE;
+        static final char LINK_CHAR = 0;
 
         final char character;
         final long freq;
