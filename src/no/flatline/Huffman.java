@@ -60,9 +60,18 @@ public class Huffman implements Compressor {
                 StringBuilder sb = new StringBuilder();
                 Map<Character, String> table = buildTable(root);
                 for (char character : s.toCharArray()) {
-                    if (table.get(character) != null) {
-                        sb.append(table.get(character));
+                    String bits = table.get(character);
+                    if (bits == null) {
+                        bits = Integer.toBinaryString(character);
+                        if (bits.length() < 8) {
+                            StringBuilder pad = new StringBuilder();
+                            for (int i = 0; i < 8 - bits.length(); i++) {
+                                pad.append(0);
+                            }
+                            bits = pad + bits;
+                        }
                     }
+                    sb.append(bits);
                 }
                 dos.writeBytes(fromBitString(sb.toString()));
                 if (len >= dis.available()) {
