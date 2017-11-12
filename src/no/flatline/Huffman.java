@@ -44,20 +44,19 @@ public class Huffman implements Compressor {
             Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
             File compFile = Files.createFile(compFilePath).toFile();
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
-            int[] freq = new int[65536];
+            int[] freq = new int[Character.MAX_VALUE];
             byte[] b = new byte[blockSize];
             int len = blockSize;
             dis.readFully(b, 0, len);
-            for(int i = 0; i < b.length; i ++){
-                int i1 = b[i];
-                freq[i1] ++;
-            }
             dos.writeInt(blockSize);
             dos.write(b);
             String s = new String(b);
+            for (int i = 0; i < s.length(); i++) {
+                freq[s.charAt(i)]++;
+            }
             boolean stop = false;
             while(!stop) {
-                Node root = getTree(s);
+                Node root = getTree(freq);
                 StringBuilder sb = new StringBuilder();
                 Map<Character, String> table = buildTable(root);
                 for (char character : s.toCharArray()) {
@@ -71,11 +70,10 @@ public class Huffman implements Compressor {
                     stop = true;
                 }
                 dis.readFully(b, 0, len);
-                for(int i = 0; i < b.length; i ++){
-                    int i1 = b[i];
-                    freq[i1] ++;
-                }
                 s = new String(b);
+                for (int i = 0; i < s.length(); i++) {
+                    freq[s.charAt(i)]++;
+                }
             }
             dis.close();
             dos.close();
@@ -150,9 +148,10 @@ public class Huffman implements Compressor {
      * @throws IOException - Throws any IOExceptions.
      */
     private void calcBlockSize(File src) throws IOException {
-        DataInputStream dis = new DataInputStream(new FileInputStream(src));
-        int bytes = dis.available();
-        blockSize = (int) Math.ceil(bytes / 10.0);
+        blockSize = 256;
+//        DataInputStream dis = new DataInputStream(new FileInputStream(src));
+//        int bytes = dis.available();
+//        blockSize = (int) Math.ceil(bytes / 20.0);
     }
 
     /**
@@ -179,19 +178,19 @@ public class Huffman implements Compressor {
     private Node getTree(int[] freq) {
         PriorityQueue<Node> nodes = new PriorityQueue<>();
         for (char c = 0; c < freq.length; c++) {
-            if (freq[c] != 0) {
+            if (freq[c] > 0) {
                 nodes.add(new Node(c, freq[c]));
             }
         }
         while (nodes.size() > 1) {
             Node left = nodes.poll();
             Node right = nodes.poll();
-            int combinedFreq = left.freq;
-            if (right != null) combinedFreq += right.freq;
+            int combinedFreq = left.freq + right.freq;
+//            if (right != null) combinedFreq += right.freq;
             Node link = new Node(combinedFreq, left, right);
             nodes.add(link);
         }
-        return nodes.poll();
+        return nodes.peek();
     }
 
     /**
