@@ -53,7 +53,8 @@ public class Huffman implements Compressor {
                 dos.writeByte(0);
 
                 /* Now compress file using the frequencies */
-                Map<Byte, String> table = buildTable(getTree(freq));
+                Node root = getTree(freq);
+                Map<Byte, String> table = buildTable(root);
 
                 dis.close();
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
@@ -164,7 +165,16 @@ public class Huffman implements Compressor {
 
                     StringBuilder bits = new StringBuilder();
                     for (byte b1 : bytes) {
-                        bits.append(Integer.toBinaryString(b1 & 0xff));
+                        String s = Integer.toBinaryString(b1 & 0xff);
+                        if (s.length() < 8) {
+                            int padL = 8 - s.length();
+                            StringBuilder pad = new StringBuilder();
+                            for (int i = 0; i < padL; i++) {
+                                pad.append("0");
+                            }
+                            s = pad + s;
+                        }
+                        bits.append(s);
                     }
                     String dcomp = getString(root, bits.toString());
                     dos.writeBytes(dcomp);
