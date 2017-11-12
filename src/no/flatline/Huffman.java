@@ -15,80 +15,83 @@ import java.util.PriorityQueue;
  */
 public class Huffman implements Compressor {
 
-    private static final int DEFAULT_BLOCK_SIZE = 256;
-    private int blockSize;
-
     /**
      * Default constructor.
      */
-    public Huffman() {
-        this(DEFAULT_BLOCK_SIZE);
-    }
-
-    /**
-     * Creates a Huffman compressor with the specified block size.
-     * To decompress correctly it is essential that a
-     * Huffman compressor with the same block size is used.
-     *
-     * @param blockSize the block size to compress with.
-     */
-    public Huffman(int blockSize) {
-        this.blockSize = blockSize;
-    }
+    public Huffman() {}
 
     @Override
     public void compress(File src) {
         try {
-            calcBlockSize(src);
             DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
             Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
             File compFile = Files.createFile(compFilePath).toFile();
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
-            int[] freq = new int[Character.MAX_VALUE+1];
-            byte[] b = new byte[blockSize];
-            int len = blockSize;
-            dis.readFully(b, 0, len);
-            dos.writeInt(blockSize);
-            dos.write(b);
-            String s = new String(b);
-            for (int i = 0; i < s.length(); i++) {
-                freq[s.charAt(i)]++;
+
+            /* First write frequency array */
+            long[] freq = new long[Character.MAX_VALUE+1];
+            int i1;
+            while ((i1 = dis.read()) != -1) {
+                int i2 = dis.read();
+                if (i2 != -1) {
+                    freq[((i1 & 0xff) << 8) | (i2 & 0xff)]++;
+                }
             }
-            boolean stop = false;
-            while(!stop) {
-                Node root = getTree(freq);
-                StringBuilder sb = new StringBuilder();
-                Map<Character, String> table = buildTable(root);
-                for (char character : s.toCharArray()) {
-                    String bits = table.get(character);
-                    if (bits == null) {
-                        bits = Integer.toBinaryString(character);
-                        if (bits.length() < 8) {
-                            StringBuilder pad = new StringBuilder();
-                            for (int i = 0; i < 8 - bits.length(); i++) {
-                                pad.append(0);
-                            }
-                            bits = pad + bits;
-                        }
+            long maxFreq = 0;
+            for (long aFreq : freq) {
+                if (aFreq > maxFreq) {
+                    maxFreq = aFreq;
+                }
+            }
+            if (maxFreq == 0) throw new IllegalArgumentException("Wut");
+            byte first = (byte) (1 + Long.toBinaryString(maxFreq).length() / 8);
+            dos.writeByte(first);
+            for (int i = 0; i < freq.length; i++) {
+                write(dos, first, freq, i);
+            }
+            dos.writeChar(0);
+
+            /* Now compress file using the frequencies */
+            Map<Character, String> table = buildTable(getTree(freq));
+
+            dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
+            StringBuilder s = new StringBuilder();
+            while ((i1 = dis.read()) != -1) {
+                int i2 = dis.read();
+                if (i2 != -1) {
+                    char c = (char) (((i1 & 0xff) << 8) | (i2 & 0xff));
+                    s.append(table.get(c));
+                    if (s.length() >= 8) {
+                        dos.writeByte(Integer.parseInt(s.substring(0, 8), 2));
+                        s = new StringBuilder(s.substring(8));
                     }
-                    sb.append(bits);
-                }
-                dos.writeBytes(fromBitString(sb.toString()));
-                if (len >= dis.available()) {
-                    len = dis.available();
-                    stop = true;
-                }
-                dis.readFully(b, 0, len);
-                s = new String(b);
-                for (int i = 0; i < s.length(); i++) {
-                    freq[s.charAt(i)]++;
+                } else {
+                    dos.writeByte(i1);
                 }
             }
-            dis.close();
-            dos.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void write(DataOutputStream dos, byte first, long[] freq, int i) throws IOException {
+        if (freq[i] <= 0) return;
+        switch (first) {
+            case 1:
+                dos.writeByte((byte) freq[i]);
+                break;
+            case 2:
+                dos.writeShort((short) freq[i]);
+                break;
+            case 3:
+            case 4:
+                dos.writeInt((int) freq[i]);
+                break;
+            default:
+                dos.writeLong(freq[i]);
+                break;
+        }
+        if (i != 0) dos.writeChar((char) i);
     }
 
     private String fromBitString(String bitstring) {
@@ -105,7 +108,7 @@ public class Huffman implements Compressor {
 
     @Override
     public void decompress(File src) { // TODO
-
+        if (!src.getName().endsWith(".cff")) throw new IllegalArgumentException("File is not valid format");
     }
 
     /**
@@ -151,19 +154,6 @@ public class Huffman implements Compressor {
     }
 
     /**
-     * Uses an estimate of bytes available to be read from the file. This estimate
-     * is used to calculate a fitting block size to use with the algorithm.
-     * @param src - The file to calculate the block size from.
-     * @throws IOException - Throws any IOExceptions.
-     */
-    private void calcBlockSize(File src) throws IOException {
-        blockSize = 256;
-//        DataInputStream dis = new DataInputStream(new FileInputStream(src));
-//        int bytes = dis.available();
-//        blockSize = (int) Math.ceil(bytes / 20.0);
-    }
-
-    /**
      * Returns the root of the corresponding Huffman Tree to a string
      *
      * @param s the string to get the Huffman Tree for.
@@ -171,7 +161,7 @@ public class Huffman implements Compressor {
      */
     private Node getTree(String s) {
         char[] chars = s.toCharArray();
-        int[] freq = new int[Character.MAX_VALUE+1]; // one entry for each possible character
+        long[] freq = new long[Character.MAX_VALUE+1]; // one entry for each possible character
         for (char c : chars) {
             freq[c]++;
         }
@@ -184,7 +174,7 @@ public class Huffman implements Compressor {
      * @param freq the frequency array to use on the string
      * @return the root of the corresponding Huffman Tree to {@code freq}
      */
-    private Node getTree(int[] freq) {
+    private Node getTree(long[] freq) {
         PriorityQueue<Node> nodes = new PriorityQueue<>();
         for (int i = 0; i < freq.length; i++) {
             char c = (char) i;
@@ -195,7 +185,7 @@ public class Huffman implements Compressor {
         while (nodes.size() > 1) {
             Node left = nodes.poll();
             Node right = nodes.poll();
-            int combinedFreq = left.freq + right.freq;
+            long combinedFreq = left.freq + right.freq;
 //            if (right != null) combinedFreq += right.freq;
             Node link = new Node(combinedFreq, left, right);
             nodes.add(link);
@@ -247,22 +237,22 @@ public class Huffman implements Compressor {
         static final char LINK_CHAR = Character.MIN_VALUE;
 
         final char character;
-        final int freq;
+        final long freq;
         final Node leftChild;
         final Node rightChild;
 
-        Node(final char character, final int freq, final Node leftChild, final Node rightChild){
+        Node(final char character, final long freq, final Node leftChild, final Node rightChild){
             this.character = character;
             this.freq = freq;
             this.leftChild = leftChild;
             this.rightChild = rightChild;
         }
 
-        Node(final char character, final int freq) {
+        Node(final char character, final long freq) {
             this(character, freq, null, null);
         }
 
-        Node(final int freq, final Node leftChild, final Node rightChild) {
+        Node(final long freq, final Node leftChild, final Node rightChild) {
             this(LINK_CHAR, freq, leftChild, rightChild);
         }
 
@@ -272,7 +262,7 @@ public class Huffman implements Compressor {
 
         @Override
         public int compareTo(final Node o){
-            final int freqCompare = Integer.compare(this.freq, o.freq);
+            final int freqCompare = Long.compare(this.freq, o.freq);
             if (freqCompare != 0) return freqCompare;
             return Integer.compare(this.character, o.character);
         }
