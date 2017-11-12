@@ -16,7 +16,7 @@ import java.util.PriorityQueue;
  */
 public class Huffman implements Compressor {
 
-    private static final int BLOCK_SIZE = 1 << 20;
+    private static final int BLOCK_SIZE = 1 << 18;
 
     /**
      * Default constructor.
@@ -65,7 +65,7 @@ public class Huffman implements Compressor {
                     String s = new String(bytes);
                     StringBuilder build = new StringBuilder();
                     for (int i = 0; i < s.length(); i++) {
-                        String bits = table.get((byte)s.charAt(i));
+                        String bits = table.get((byte) (s.charAt(i) & 0xff));
                         if (bits != null) build.append(bits);
                     }
 
@@ -78,7 +78,7 @@ public class Huffman implements Compressor {
                 String s = new String(bytes);
                 StringBuilder build = new StringBuilder();
                 for (int i = 0; i < s.length(); i++) {
-                    String bits = table.get((byte)s.charAt(i));
+                    String bits = table.get((byte) (s.charAt(i) & 0xff));
                     if (bits != null) build.append(bits);
                 }
                 dos.writeBytes(fromBitString(build.toString()));
@@ -149,7 +149,7 @@ public class Huffman implements Compressor {
 
                         StringBuilder bits = new StringBuilder();
                         for (byte b1 : bytes) {
-                            bits.append(Integer.toBinaryString(b1));
+                            bits.append(Integer.toBinaryString(b1 & 0xff));
                         }
                         String dcomp = getString(root, bits.toString());
                         dos.writeBytes(dcomp);
@@ -212,7 +212,7 @@ public class Huffman implements Compressor {
             buildTableImpl(node.leftChild, s + '0', table);
             buildTableImpl(node.rightChild, s + '1', table);
         } else {
-            table.put(node.character, s);
+            table.put((byte) (node.character & 0xff), s);
         }
     }
 
@@ -224,10 +224,9 @@ public class Huffman implements Compressor {
      * @return a bit string generated from {@code table} and {@code s}
      */
     private String getBitString(Map<Byte, String> table, String s) {
-        char[] chars = s.toCharArray();
         StringBuilder bits = new StringBuilder();
-        for (char c : chars) {
-            bits.append(table.get(c));
+        for (int i = 0; i < s.length(); i++) {
+            bits.append(table.get((byte)s.charAt(i)));
         }
         return bits.toString();
     }
@@ -239,10 +238,9 @@ public class Huffman implements Compressor {
      * @return the root of the corresponding Huffman Tree to {@code s}
      */
     private Node getTree(String s) {
-        char[] chars = s.toCharArray();
         long[] freq = new long[Character.MAX_VALUE+1]; // one entry for each possible character
-        for (char c : chars) {
-            freq[c]++;
+        for (int i = 0; i < s.length(); i++) {
+            freq[s.charAt(i)]++;
         }
         return getTree(freq);
     }
@@ -256,8 +254,8 @@ public class Huffman implements Compressor {
     private Node getTree(long[] freq) {
         PriorityQueue<Node> nodes = new PriorityQueue<>();
         for (int i = 0; i < freq.length; i++) {
-            if (freq[i] > 1) {
-                nodes.add(new Node((byte) i, freq[i]));
+            if (freq[i] > 0) {
+                nodes.add(new Node(i, freq[i]));
             }
         }
         while (nodes.size() > 1) {
@@ -280,10 +278,9 @@ public class Huffman implements Compressor {
      */
     private String getString(Node root, String bits) {
         StringBuilder s = new StringBuilder();
-        char[] bitChars = bits.toCharArray();
         Node n = root;
-        for (char c : bitChars) {
-            switch (c) {
+        for (int i = 0; i < bits.length(); i++) {
+            switch (bits.charAt(i)) {
                 case '0':
                     n = n.leftChild;
                     break;
@@ -314,19 +311,19 @@ public class Huffman implements Compressor {
 
         static final byte LINK_CHAR = 0;
 
-        final byte character;
+        final int character;
         final long freq;
         final Node leftChild;
         final Node rightChild;
 
-        Node(final byte character, final long freq, final Node leftChild, final Node rightChild){
+        Node(final int character, final long freq, final Node leftChild, final Node rightChild){
             this.character = character;
             this.freq = freq;
             this.leftChild = leftChild;
             this.rightChild = rightChild;
         }
 
-        Node(final byte character, final long freq) {
+        Node(final int character, final long freq) {
             this(character, freq, null, null);
         }
 
