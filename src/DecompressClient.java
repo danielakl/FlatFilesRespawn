@@ -10,9 +10,12 @@ import java.util.Scanner;
 /**
  * @author Joppe
  * @author Daniel Klock
- * @version 0.1.0
+ * @author Roy Åne Sylthe
+ * @version 0.1.1
  */
 public final class DecompressClient {
+    private static final String printfExp = "%1$-5s %2$s %n";
+
     private static final List<File> files = new ArrayList<>();
 
     /**
@@ -30,12 +33,12 @@ public final class DecompressClient {
                 }
             }
             System.out.println("\nCurrent directory: " + currentPath.toString());
-            System.out.println("[0]\t..");
+            System.out.printf(printfExp,"[0]","..");
             File[] filesInCurrentDir = currentPath.toFile().listFiles();
             for (int i = 0; i < filesInCurrentDir.length; i++) {
-                System.out.println("[" + (i + 1) + "]\t" + filesInCurrentDir[i].getName());
+                System.out.printf(printfExp,"[" + (i + 1) + "]", filesInCurrentDir[i].getName());
             }
-            System.out.println("[" + (filesInCurrentDir.length + 1) + "]\tdecompress");
+            System.out.printf(printfExp,"[" + (filesInCurrentDir.length + 1) + "]","decompress");
             Scanner scanner = new Scanner(System.in);
             String input = scanner.next();
             if (input.matches("^[0-9]+$")) {
