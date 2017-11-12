@@ -3,6 +3,7 @@ package no.flatline;
 import no.flatline.file.FileUtil;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -111,13 +112,8 @@ public class Huffman implements Compressor {
     }
 
     private String fromBitString(String bitstring) {
-        StringBuilder s = new StringBuilder();
-        for (int i = 0; i < bitstring.length()-8; i += 8) {
-            String sub1 = bitstring.substring(i, i+8);
-            int b1 = Integer.parseInt(sub1, 2);
-            s.append((char)b1);
-        }
-        return s.toString();
+        byte[] bval = new BigInteger(bitstring, 2).toByteArray();
+        return new String(bval);
     }
 
     @Override
