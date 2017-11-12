@@ -49,7 +49,7 @@ public class Huffman implements Compressor {
                 if (maxFreq == 0) throw new IllegalArgumentException("Wut");
                 byte first = (byte) (1 + Long.toBinaryString(maxFreq).length() / 8);
                 dos.writeByte(first);
-                for (int i = 0; i < freq.length; i++) {
+                for (int i = 1; i < freq.length; i++) {
                     write(dos, first, freq, i);
                 }
                 dos.writeChar(0);
@@ -58,30 +58,34 @@ public class Huffman implements Compressor {
                 Map<Character, String> table = buildTable(getTree(freq));
 
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-                StringBuilder s = new StringBuilder();
 
                 byte[] bytes = new byte[BLOCK_SIZE];
                 int len = dis.available();
                 while (BLOCK_SIZE < len) {
                     dis.readFully(bytes, 0, BLOCK_SIZE);
 
-                    for (int i = 0; i < bytes.length - 1; i += 2) {
-                        int a = bytes[i];
-                        int b = bytes[i + 1];
-                        String bits = table.get((char) (((a & 0xff) << 8) | (b & 0xff)));
-                        dos.writeChar(Integer.parseInt(bits, 2));
+                    String s = new String(bytes);
+                    StringBuilder build = new StringBuilder();
+                    for (int i = 0; i < s.length(); i++) {
+                        String bits = table.get(s.charAt(i));
+                        if (bits != null) build.append(bits);
                     }
+
+                    dos.writeBytes(fromBitString(build.toString()));
 
                     len = dis.available();
                 }
+                bytes = new byte[len];
                 dis.readFully(bytes, 0, len);
-                for (int i = 0; i < len-1; i += 2) {
-                    int a = bytes[i];
-                    int b = bytes[i + 1];
-                    String bits = table.get((char) (((a & 0xff) << 8) | (b & 0xff)));
-
-                    dos.writeChar(Integer.parseInt(bits, 2));
+                String s = new String(bytes);
+                StringBuilder build = new StringBuilder();
+                for (int i = 0; i < s.length(); i++) {
+                    String bits = table.get(s.charAt(i));
+                    if (bits != null) build.append(bits);
                 }
+                dos.writeBytes(fromBitString(build.toString()));
+                dis.close();
+                dos.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -125,21 +129,72 @@ public class Huffman implements Compressor {
         if (src.isFile() && src.canRead()) {
             String extension = FileUtil.getExtension(src);
             if (extension.equals("cff")) {
-//                try {
-//                    DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-//                    File dcompFile = FileUtil.createFile(src.getParent(), FileUtil.getBaseName(src));
-//                    DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dcompFile)));
-//                    blockSize = dis.readInt();
-//                    byte[] bytes = new byte[blockSize];
-//                    dis.readFully(bytes, 0, blockSize);
-//                    dis.close();
-//                    dos.close();
-//                } catch (IOException ioe) {
-//                    ioe.printStackTrace();
-//                }
+                try {
+                    DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
+                    File dcompFile = FileUtil.createFile(src.getParent(), FileUtil.getBaseName(src));
+                    DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dcompFile)));
+
+                    byte first = dis.readByte();
+                    long[] freq = new long[Character.MAX_VALUE+1];
+
+                    char c = 0;
+                    do {
+                        read(dis, first, freq, c);
+                        c = dis.readChar();
+                    } while (c != 0);
+
+                    Node root = getTree(freq);
+
+                    byte[] b = new byte[BLOCK_SIZE];
+
+                    int len = dis.available();
+                    while (len > BLOCK_SIZE) {
+                        dis.readFully(b, 0, BLOCK_SIZE);
+
+                        StringBuilder bits = new StringBuilder();
+                        for (byte b1 : b) {
+                            bits.append(Integer.toBinaryString(b1));
+                        }
+                        String dcomp = getString(root, bits.toString());
+                        dos.writeBytes(dcomp);
+                        len = dis.available();
+                    }
+                    b = new byte[len];
+                    dis.readFully(b, 0, len);
+
+                    StringBuilder bits = new StringBuilder();
+                    for (byte b1 : b) {
+                        bits.append(Integer.toBinaryString(b1));
+                    }
+                    String dcomp = getString(root, bits.toString());
+                    dos.writeBytes(dcomp);
+
+                    dis.close();
+                    dos.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
             } else {
                 throw new IllegalArgumentException("File is not valid format");
             }
+        }
+    }
+
+    private void read(DataInputStream dis, byte first, long[] freq, char c) throws IOException {
+        switch (first) {
+            case 1:
+                freq[c] = dis.readByte();
+                break;
+            case 2:
+                freq[c] = dis.readShort();
+                break;
+            case 3:
+            case 4:
+                freq[c] = dis.readInt();
+                break;
+            default:
+                freq[c] = dis.readLong();
+                break;
         }
     }
 
@@ -210,7 +265,7 @@ public class Huffman implements Compressor {
         PriorityQueue<Node> nodes = new PriorityQueue<>();
         for (int i = 0; i < freq.length; i++) {
             char c = (char) i;
-            if (freq[i] > 0) {
+            if (freq[i] > 1) {
                 nodes.add(new Node(c, freq[i]));
             }
         }
