@@ -32,7 +32,7 @@ public class Huffman implements Compressor {
                 DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
 
                 /* First write frequency array */
-                long[] freq = new long[Character.MAX_VALUE+1];
+                long[] freq = new long[Character.MAX_VALUE + 1];
                 int i1;
                 while ((i1 = dis.read()) != -1) {
                     int i2 = dis.read();
@@ -54,7 +54,7 @@ public class Huffman implements Compressor {
                 }
                 dos.writeChar(0);
 
-            /* Now compress file using the frequencies */
+                /* Now compress file using the frequencies */
                 Map<Character, String> table = buildTable(getTree(freq));
 
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
@@ -65,11 +65,23 @@ public class Huffman implements Compressor {
                 while (BLOCK_SIZE < len) {
                     dis.readFully(bytes, 0, BLOCK_SIZE);
 
-                    // TODO write bytes
+                    for (int i = 0; i < bytes.length - 1; i += 2) {
+                        int a = bytes[i];
+                        int b = bytes[i + 1];
+                        String bits = table.get((char) (((a & 0xff) << 8) | (b & 0xff)));
+                        dos.writeChar(Integer.parseInt(bits, 2));
+                    }
 
                     len = dis.available();
                 }
-                // TODO write remaining bytes
+                dis.readFully(bytes, 0, len);
+                for (int i = 0; i < len-1; i += 2) {
+                    int a = bytes[i];
+                    int b = bytes[i + 1];
+                    String bits = table.get((char) (((a & 0xff) << 8) | (b & 0xff)));
+
+                    dos.writeChar(Integer.parseInt(bits, 2));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
