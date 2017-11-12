@@ -1,6 +1,5 @@
 package no.flatline.file;
 
-import com.sun.istack.internal.Nullable;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
