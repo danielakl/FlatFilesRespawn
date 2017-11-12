@@ -16,6 +16,8 @@ import java.util.PriorityQueue;
  */
 public class Huffman implements Compressor {
 
+    private static final int BLOCK_SIZE = 1 << 20;
+
     /**
      * Default constructor.
      */
@@ -57,19 +59,17 @@ public class Huffman implements Compressor {
 
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
                 StringBuilder s = new StringBuilder();
-                while ((i1 = dis.read()) != -1) {
-                    int i2 = dis.read();
-                    if (i2 != -1) {
-                        char c = (char) (((i1 & 0xff) << 8) | (i2 & 0xff));
-                        s.append(table.get(c));
-                        if (s.length() >= 8) {
-                            dos.writeByte(Integer.parseInt(s.substring(0, 8), 2));
-                            s = new StringBuilder(s.substring(8));
-                        }
-                    } else {
-                        dos.writeByte(i1);
-                    }
+
+                byte[] bytes = new byte[BLOCK_SIZE];
+                int len = dis.available();
+                while (BLOCK_SIZE < len) {
+                    dis.readFully(bytes, 0, BLOCK_SIZE);
+
+                    // TODO write bytes
+
+                    len = dis.available();
                 }
+                // TODO write remaining bytes
             } catch (IOException e) {
                 e.printStackTrace();
             }
