@@ -52,11 +52,12 @@ public class Huffman implements Compressor {
                 for (int i = 0; i < freq.length; i++) {
                     write(dos, first, freq, i);
                 }
-                dos.writeChar(0);
+                dos.writeChar(Character.MIN_VALUE);
 
                 /* Now compress file using the frequencies */
                 Map<Character, String> table = buildTable(getTree(freq));
 
+                dis.close();
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
 
                 byte[] bytes = new byte[BLOCK_SIZE];
