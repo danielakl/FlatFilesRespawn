@@ -1,8 +1,13 @@
 package no.flatline;
 
+import no.flatline.file.FileUtil;
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.*;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -38,49 +43,51 @@ public class Huffman implements Compressor {
 
     @Override
     public void compress(File src) {
-        try {
-            calcBlockSize(src);
-            DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-            Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
-            File compFile = Files.createFile(compFilePath).toFile();
-            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
-            int[] freq = new int[65536];
-            byte[] b = new byte[blockSize];
-            int len = blockSize;
-            dis.readFully(b, 0, len);
-            for(int i = 0; i < b.length; i ++){
-                int i1 = b[i];
-                freq[i1] ++;
-            }
-            dos.writeInt(blockSize);
-            dos.write(b);
-            String s = new String(b);
-            boolean stop = false;
-            while(!stop) {
-                Node root = getTree(s);
-                StringBuilder sb = new StringBuilder();
-                Map<Character, String> table = buildTable(root);
-                for (char character : s.toCharArray()) {
-                    if (table.get(character) != null) {
-                        sb.append(table.get(character));
-                    }
-                }
-                dos.writeBytes(fromBitString(sb.toString()));
-                if (len >= dis.available()) {
-                    len = dis.available();
-                    stop = true;
-                }
+        if (src.isFile() && src.canRead()) {
+            try {
+                calcBlockSize(src);
+                DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
+                Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
+                File compFile = Files.createFile(compFilePath).toFile();
+                DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
+                int[] freq = new int[65536];
+                byte[] b = new byte[blockSize];
+                int len = blockSize;
                 dis.readFully(b, 0, len);
-                for(int i = 0; i < b.length; i ++){
+                for (int i = 0; i < b.length; i++) {
                     int i1 = b[i];
-                    freq[i1] ++;
+                    freq[i1]++;
                 }
-                s = new String(b);
+                dos.writeInt(blockSize);
+                dos.write(b);
+                String s = new String(b);
+                boolean stop = false;
+                while (!stop) {
+                    Node root = getTree(s);
+                    StringBuilder sb = new StringBuilder();
+                    Map<Character, String> table = buildTable(root);
+                    for (char character : s.toCharArray()) {
+                        if (table.get(character) != null) {
+                            sb.append(table.get(character));
+                        }
+                    }
+                    dos.writeBytes(fromBitString(sb.toString()));
+                    if (len >= dis.available()) {
+                        len = dis.available();
+                        stop = true;
+                    }
+                    dis.readFully(b, 0, len);
+                    for (int i = 0; i < b.length; i++) {
+                        int i1 = b[i];
+                        freq[i1]++;
+                    }
+                    s = new String(b);
+                }
+                dis.close();
+                dos.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            dis.close();
-            dos.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -98,7 +105,23 @@ public class Huffman implements Compressor {
 
     @Override
     public void decompress(File src) { // TODO
-
+        if (src.isFile() && src.canRead()) {
+            String extension = FileUtil.getExtension(src);
+            if (extension.equals("cff")) {
+                try {
+                    DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
+                    File dcompFile = FileUtil.createFile(src.getParent(), FileUtil.getBaseName(src));
+                    DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dcompFile)));
+                    blockSize = dis.readInt();
+                    byte[] bytes = new byte[blockSize];
+                    dis.readFully(bytes, 0, blockSize);
+                    dis.close();
+                    dos.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
