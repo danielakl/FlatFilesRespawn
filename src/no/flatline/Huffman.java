@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
  * @author Rolv-Arild Braaten
  * @author Daniel Klock
  * @author Joakim Sæther
+ * @author Kristoffer Arntzen
  * @version 0.0.2
  */
 public class Huffman implements Compressor {
