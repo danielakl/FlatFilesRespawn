@@ -32,13 +32,10 @@ public class Huffman implements Compressor {
                 DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
 
                 /* First write frequency array */
-                long[] freq = new long[Character.MAX_VALUE + 1];
+                long[] freq = new long[256];
                 int i1;
                 while ((i1 = dis.read()) != -1) {
-                    int i2 = dis.read();
-                    if (i2 != -1) {
-                        freq[((i1 & 0xff) << 8) | (i2 & 0xff)]++;
-                    }
+                    freq[i1]++;
                 }
                 long maxFreq = 0;
                 for (long aFreq : freq) {
@@ -52,10 +49,10 @@ public class Huffman implements Compressor {
                 for (int i = 0; i < freq.length; i++) {
                     write(dos, first, freq, i);
                 }
-                dos.writeChar(Character.MIN_VALUE);
+                dos.writeByte(0);
 
                 /* Now compress file using the frequencies */
-                Map<Character, String> table = buildTable(getTree(freq));
+                Map<Byte, String> table = buildTable(getTree(freq));
 
                 dis.close();
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
@@ -68,11 +65,11 @@ public class Huffman implements Compressor {
                     String s = new String(bytes);
                     StringBuilder build = new StringBuilder();
                     for (int i = 0; i < s.length(); i++) {
-                        String bits = table.get(s.charAt(i));
+                        String bits = table.get((byte)s.charAt(i));
                         if (bits != null) build.append(bits);
                     }
 
-                    dos.writeChars(fromBitString(build.toString()));
+                    dos.writeBytes(fromBitString(build.toString()));
 
                     len = dis.available();
                 }
@@ -81,10 +78,10 @@ public class Huffman implements Compressor {
                 String s = new String(bytes);
                 StringBuilder build = new StringBuilder();
                 for (int i = 0; i < s.length(); i++) {
-                    String bits = table.get(s.charAt(i));
+                    String bits = table.get((byte)s.charAt(i));
                     if (bits != null) build.append(bits);
                 }
-                dos.writeChars(fromBitString(build.toString()));
+                dos.writeBytes(fromBitString(build.toString()));
                 dis.close();
                 dos.close();
             } catch (IOException e) {
@@ -95,13 +92,13 @@ public class Huffman implements Compressor {
 
     private void write(DataOutputStream dos, byte first, long[] freq, int i) throws IOException {
         if (freq[i] <= 0 && i != 0) return;
-        if (i != 0) dos.writeChar((char) i);
+        if (i != 0) dos.writeByte(i);
         switch (first) {
             case 1:
-                dos.writeByte((byte) freq[i]);
+                dos.writeByte((int) (freq[i] & 0xff));
                 break;
             case 2:
-                dos.writeShort((short) freq[i]);
+                dos.writeShort((int) (freq[i] & 0xffff));
                 break;
             case 3:
             case 4:
@@ -115,12 +112,10 @@ public class Huffman implements Compressor {
 
     private String fromBitString(String bitstring) {
         StringBuilder s = new StringBuilder();
-        for (int i = 0; i < bitstring.length()-16; i += 16) {
+        for (int i = 0; i < bitstring.length()-8; i += 8) {
             String sub1 = bitstring.substring(i, i+8);
-            String sub2 = bitstring.substring(i+8, i+16);
             int b1 = Integer.parseInt(sub1, 2);
-            int b2 = Integer.parseInt(sub2, 2);
-            s.append((char)(((b1 & 0xff) << 8) | (b2 & 0xff)));
+            s.append((char)b1);
         }
         return s.toString();
     }
@@ -136,36 +131,36 @@ public class Huffman implements Compressor {
                     DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dcompFile)));
 
                     byte first = dis.readByte();
-                    long[] freq = new long[Character.MAX_VALUE+1];
+                    long[] freq = new long[256];
 
-                    char c = 0;
+                    int b = 0;
                     do {
-                        read(dis, first, freq, c);
-                        c = dis.readChar();
-                    } while (c != 0);
+                        freq[b] = read(dis, first);
+                        b = dis.readByte() & 0xff;
+                    } while (b != 0);
 
                     Node root = getTree(freq);
 
-                    byte[] b = new byte[BLOCK_SIZE];
+                    byte[] bytes = new byte[BLOCK_SIZE];
 
                     int len = dis.available();
                     while (len > BLOCK_SIZE) {
-                        dis.readFully(b, 0, BLOCK_SIZE);
+                        dis.readFully(bytes, 0, BLOCK_SIZE);
 
                         StringBuilder bits = new StringBuilder();
-                        for (byte b1 : b) {
+                        for (byte b1 : bytes) {
                             bits.append(Integer.toBinaryString(b1));
                         }
                         String dcomp = getString(root, bits.toString());
                         dos.writeBytes(dcomp);
                         len = dis.available();
                     }
-                    b = new byte[len];
-                    dis.readFully(b, 0, len);
+                    bytes = new byte[len];
+                    dis.readFully(bytes, 0, len);
 
                     StringBuilder bits = new StringBuilder();
-                    for (byte b1 : b) {
-                        bits.append(Integer.toBinaryString(b1));
+                    for (byte b1 : bytes) {
+                        bits.append(Integer.toBinaryString(b1 & 0xff));
                     }
                     String dcomp = getString(root, bits.toString());
                     dos.writeBytes(dcomp);
@@ -181,21 +176,17 @@ public class Huffman implements Compressor {
         }
     }
 
-    private void read(DataInputStream dis, byte first, long[] freq, char c) throws IOException {
+    private long read(DataInputStream dis, byte first) throws IOException {
         switch (first) {
             case 1:
-                freq[c] = dis.readByte();
-                break;
+                return dis.readByte() & 0xff;
             case 2:
-                freq[c] = dis.readShort();
-                break;
+                return dis.readShort() & 0xffff;
             case 3:
             case 4:
-                freq[c] = dis.readInt();
-                break;
+                return dis.readInt();
             default:
-                freq[c] = dis.readLong();
-                break;
+                return dis.readLong();
         }
     }
 
@@ -204,8 +195,8 @@ public class Huffman implements Compressor {
      * @param root is the root node of the Huffman Tree.
      * @return a map with the characters used in the text mapped to their bit string.
      */
-    private Map<Character, String> buildTable(final Node root){
-        final Map<Character, String> table = new HashMap<>();
+    private Map<Byte, String> buildTable(final Node root){
+        final Map<Byte, String> table = new HashMap<>();
         buildTableImpl(root, "", table);
         return table;
     }
@@ -216,7 +207,7 @@ public class Huffman implements Compressor {
      * @param s is the compressed string at the current location in the Huffman Tree.
      * @param table is a table with all the used characters.
      */
-    private void buildTableImpl(final Node node, final String s, final Map<Character, String> table){
+    private void buildTableImpl(final Node node, final String s, final Map<Byte, String> table){
         if (!node.isLeaf()) {
             buildTableImpl(node.leftChild, s + '0', table);
             buildTableImpl(node.rightChild, s + '1', table);
@@ -232,7 +223,7 @@ public class Huffman implements Compressor {
      * @param s the string to convert into a bit string.
      * @return a bit string generated from {@code table} and {@code s}
      */
-    private String getBitString(Map<Character, String> table, String s) {
+    private String getBitString(Map<Byte, String> table, String s) {
         char[] chars = s.toCharArray();
         StringBuilder bits = new StringBuilder();
         for (char c : chars) {
@@ -265,9 +256,8 @@ public class Huffman implements Compressor {
     private Node getTree(long[] freq) {
         PriorityQueue<Node> nodes = new PriorityQueue<>();
         for (int i = 0; i < freq.length; i++) {
-            char c = (char) i;
             if (freq[i] > 1) {
-                nodes.add(new Node(c, freq[i]));
+                nodes.add(new Node((byte) i, freq[i]));
             }
         }
         while (nodes.size() > 1) {
@@ -303,8 +293,8 @@ public class Huffman implements Compressor {
                 default:
                     throw new IllegalArgumentException("Bit string contains illegal characters");
             }
-            if (!n.isLeaf()) {
-                s.append(n.character);
+            if (n.isLeaf()) {
+                s.append((char)n.character);
                 n = root;
             }
         }
@@ -322,21 +312,21 @@ public class Huffman implements Compressor {
      */
     private static class Node implements Comparable<Node> {
 
-        static final char LINK_CHAR = 0;
+        static final byte LINK_CHAR = 0;
 
-        final char character;
+        final byte character;
         final long freq;
         final Node leftChild;
         final Node rightChild;
 
-        Node(final char character, final long freq, final Node leftChild, final Node rightChild){
+        Node(final byte character, final long freq, final Node leftChild, final Node rightChild){
             this.character = character;
             this.freq = freq;
             this.leftChild = leftChild;
             this.rightChild = rightChild;
         }
 
-        Node(final char character, final long freq) {
+        Node(final byte character, final long freq) {
             this(character, freq, null, null);
         }
 
