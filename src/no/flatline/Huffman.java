@@ -44,7 +44,7 @@ public class Huffman implements Compressor {
             Path compFilePath = src.toPath().getParent().resolve(src.getName() + ".cff");
             File compFile = Files.createFile(compFilePath).toFile();
             DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
-            int[] freq = new int[Character.MAX_VALUE];
+            int[] freq = new int[Character.MAX_VALUE+1];
             byte[] b = new byte[blockSize];
             int len = blockSize;
             dis.readFully(b, 0, len);
@@ -101,7 +101,7 @@ public class Huffman implements Compressor {
 
     /**
      * Creates a map where the characters can be mapped to their corresponding compressed bit string.
-     * @param root is the root node of the Huffman tree.
+     * @param root is the root node of the Huffman Tree.
      * @return a map with the characters used in the text mapped to their bit string.
      */
     private Map<Character, String> buildTable(final Node root){
@@ -112,8 +112,8 @@ public class Huffman implements Compressor {
 
     /**
      * Maps the characters to their corresponding compressed bit string.
-     * @param node is the root node of the Huffman tree.
-     * @param s is the compressed string at the current location in the Huffman tree.
+     * @param node is the root node of the Huffman Tree.
+     * @param s is the compressed string at the current location in the Huffman Tree.
      * @param table is a table with all the used characters.
      */
     private void buildTableImpl(final Node node, final String s, final Map<Character, String> table){
@@ -162,7 +162,7 @@ public class Huffman implements Compressor {
      */
     private Node getTree(String s) {
         char[] chars = s.toCharArray();
-        int[] freq = new int[Character.MAX_VALUE]; // one entry for each possible character
+        int[] freq = new int[Character.MAX_VALUE+1]; // one entry for each possible character
         for (char c : chars) {
             freq[c]++;
         }
@@ -177,9 +177,10 @@ public class Huffman implements Compressor {
      */
     private Node getTree(int[] freq) {
         PriorityQueue<Node> nodes = new PriorityQueue<>();
-        for (char c = 0; c < freq.length; c++) {
-            if (freq[c] > 0) {
-                nodes.add(new Node(c, freq[c]));
+        for (int i = 0; i < freq.length; i++) {
+            char c = (char) i;
+            if (freq[i] > 0) {
+                nodes.add(new Node(c, freq[i]));
             }
         }
         while (nodes.size() > 1) {
@@ -194,9 +195,9 @@ public class Huffman implements Compressor {
     }
 
     /**
-     * Generates a string from a bit string and a huffman tree.
+     * Generates a string from a bit string and a Huffman Tree.
      *
-     * @param root the root of the huffman tree.
+     * @param root the root of the Huffman Tree.
      * @param bits the string of bits.
      * @return the string generated from {@code root} and {@code bits}
      */
