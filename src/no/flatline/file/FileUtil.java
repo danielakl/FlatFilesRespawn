@@ -19,7 +19,7 @@ public final class FileUtil {
         String baseFilename = FilenameUtils.getBaseName(filename);
         String extension = FilenameUtils.getExtension(filename);
         for (int i = 1; filePath.toFile().exists(); i++) {
-            filePath = Paths.get(path, baseFilename, " (" + i + ")." + extension);
+            filePath = Paths.get(path, baseFilename + " (" + i + ")." + extension);
         }
         return Files.createFile(filePath).toFile();
     }
@@ -27,7 +27,7 @@ public final class FileUtil {
     public static File createFile(String path, String filename, String extension) throws IOException {
         Path filePath = Paths.get(path, filename + "." + extension);
         for (int i = 1; filePath.toFile().exists(); i++) {
-            filePath = Paths.get(path, filename, " (" + i + ")." + extension);
+            filePath = Paths.get(path, filename + " (" + i + ")." + extension);
         }
         return Files.createFile(filePath).toFile();
     }
