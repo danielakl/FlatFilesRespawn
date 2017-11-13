@@ -19,7 +19,7 @@ import static java.lang.Math.min;
  */
 public class Huffman implements Compressor {
 
-    private static final int BLOCK_SIZE = 1 << 18;
+    private static final int BLOCK_SIZE = 1 << 20;
 
     /**
      * Default constructor.
@@ -105,8 +105,10 @@ public class Huffman implements Compressor {
     private byte[] fromBitString(String bitstring) {
         ArrayList<Integer> list = new ArrayList<>();
 
-        for(String str : bitstring.split("(?<=\\G.{8})"))
-            list.add(Integer.parseInt(str, 2));
+        for(String str : bitstring.split("(?<=\\G.{8})")) {
+                list.add(Integer.parseInt(str, 2) << (8-str.length()));
+        }
+
 
         byte[] bytes = new byte[list.size()];
         for (int i = 0; i < bytes.length; i++) {
