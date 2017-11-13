@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import static java.lang.Math.min;
+
 /**
  * @author Rolv-Arild Braaten
  * @author Daniel Klock
@@ -58,10 +60,11 @@ public class Huffman implements Compressor {
                 dis.close();
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
 
-                byte[] bytes = new byte[BLOCK_SIZE];
-                int len = dis.available();
-                while (BLOCK_SIZE < len) {
-                    dis.readFully(bytes, 0, BLOCK_SIZE);
+                byte[] bytes;
+                int len;
+                while ((len = min(dis.available(), BLOCK_SIZE)) > 0) {
+                    bytes = new byte[len];
+                    dis.readFully(bytes, 0, len);
 
                     String s = new String(bytes);
                     StringBuilder build = new StringBuilder();
@@ -71,18 +74,7 @@ public class Huffman implements Compressor {
                     }
 
                     dos.write(fromBitString(build.toString()));
-
-                    len = dis.available();
                 }
-                bytes = new byte[len];
-                dis.readFully(bytes, 0, len);
-                String s = new String(bytes);
-                StringBuilder build = new StringBuilder();
-                for (int i = 0; i < s.length(); i++) {
-                    String bits = table.get((byte) (s.charAt(i) & 0xff));
-                    if (bits != null) build.append(bits);
-                }
-                dos.write(fromBitString(build.toString()));
                 dis.close();
                 dos.close();
             } catch (IOException e) {
@@ -145,38 +137,28 @@ public class Huffman implements Compressor {
 
                     Node root = getTree(freq);
 
-                    byte[] bytes = new byte[BLOCK_SIZE];
+                    byte[] bytes;
 
-                    int len = dis.available();
-                    while (len > BLOCK_SIZE) {
-                        dis.readFully(bytes, 0, BLOCK_SIZE);
+                    int len;
+                    while ((len = min(dis.available(), BLOCK_SIZE)) > 0) {
+                        bytes = new byte[len];
+                        dis.readFully(bytes, 0, len);
 
                         StringBuilder bits = new StringBuilder();
                         for (byte b1 : bytes) {
-                            bits.append(Integer.toBinaryString(b1 & 0xff));
-                        }
+                            String s = Integer.toBinaryString(b1 & 0xff);
+                            if (s.length() < 8) {
+                                int padL = 8 - s.length();
+                                StringBuilder pad = new StringBuilder();
+                                for (int i = 0; i < padL; i++) {
+                                    pad.append("0");
+                                }
+                                s = pad + s;
+                            }
+                            bits.append(s);                        }
                         String dcomp = getString(root, bits.toString());
                         dos.writeBytes(dcomp);
-                        len = dis.available();
                     }
-                    bytes = new byte[len];
-                    dis.readFully(bytes, 0, len);
-
-                    StringBuilder bits = new StringBuilder();
-                    for (byte b1 : bytes) {
-                        String s = Integer.toBinaryString(b1 & 0xff);
-                        if (s.length() < 8) {
-                            int padL = 8 - s.length();
-                            StringBuilder pad = new StringBuilder();
-                            for (int i = 0; i < padL; i++) {
-                                pad.append("0");
-                            }
-                            s = pad + s;
-                        }
-                        bits.append(s);
-                    }
-                    String dcomp = getString(root, bits.toString());
-                    dos.writeBytes(dcomp);
 
                     dis.close();
                     dos.close();
