@@ -55,7 +55,7 @@ public class Huffman implements Compressor {
 
                 /* Now compress file using the frequencies */
                 Node root = getTree(freq);
-                Map<Byte, String> table = buildTable(root);
+                Map<Integer, String> table = buildTable(root);
 
                 dis.close();
                 dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
@@ -66,10 +66,9 @@ public class Huffman implements Compressor {
                     bytes = new byte[len];
                     dis.readFully(bytes, 0, len);
 
-                    String s = new String(bytes);
                     StringBuilder build = new StringBuilder();
-                    for (int i = 0; i < s.length(); i++) {
-                        String bits = table.get((byte) (s.charAt(i) & 0xff));
+                    for (byte b : bytes) {
+                        String bits = table.get(b & 0xff);
                         if (bits != null) build.append(bits);
                     }
 
@@ -157,7 +156,7 @@ public class Huffman implements Compressor {
                             }
                             bits.append(s);
                         }
-                        write(dos, root, bits.toString());
+                        writeBits(dos, root, bits.toString());
                     }
 
                     dis.close();
@@ -190,8 +189,8 @@ public class Huffman implements Compressor {
      * @param root is the root node of the Huffman Tree.
      * @return a map with the characters used in the text mapped to their bit string.
      */
-    private Map<Byte, String> buildTable(final Node root){
-        final Map<Byte, String> table = new HashMap<>();
+    private Map<Integer, String> buildTable(final Node root){
+        final Map<Integer, String> table = new HashMap<>();
         buildTableImpl(root, "", table);
         return table;
     }
@@ -202,12 +201,12 @@ public class Huffman implements Compressor {
      * @param s is the compressed string at the current location in the Huffman Tree.
      * @param table is a table with all the used characters.
      */
-    private void buildTableImpl(final Node node, final String s, final Map<Byte, String> table) {
+    private void buildTableImpl(final Node node, final String s, final Map<Integer, String> table) {
         if (!node.isLeaf()) {
             buildTableImpl(node.leftChild, s + '0', table);
             buildTableImpl(node.rightChild, s + '1', table);
         } else {
-            table.put((byte) (node.character & 0xff), s);
+            table.put(node.character & 0xff, s);
         }
     }
 
@@ -218,7 +217,7 @@ public class Huffman implements Compressor {
      * @param s the string to convert into a bit string.
      * @return a bit string generated from {@code table} and {@code s}
      */
-    private String getBitString(Map<Byte, String> table, String s) {
+    private String getBitString(Map<Integer, String> table, String s) {
         StringBuilder bits = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             bits.append(table.get((byte)s.charAt(i)));
@@ -270,8 +269,9 @@ public class Huffman implements Compressor {
      * @param root the root of the Huffman Tree.
      * @param bits the string of bits.
      */
-    private void write(DataOutputStream dos, Node root, String bits) throws IOException {
+    private void writeBits(DataOutputStream dos, Node root, String bits) throws IOException {
         Node n = root;
+        int byteCounter = 0;
         for (int i = 0; i < bits.length(); i++) {
             switch (bits.charAt(i)) {
                 case '0':
@@ -286,6 +286,10 @@ public class Huffman implements Compressor {
             if (n.isLeaf()) {
                 dos.writeByte(n.character);
                 n = root;
+                byteCounter++;
+                if(byteCounter == root.freq) {
+                    break;
+                }
             }
         }
         if (n != root) System.out.println("Unfinished bits");
