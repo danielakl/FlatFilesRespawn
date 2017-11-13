@@ -117,7 +117,7 @@ public class Huffman implements Compressor {
     }
 
     @Override
-    public void decompress(File src) { // TODO
+    public void decompress(File src) {
         if (src.isFile() && src.canRead()) {
             String extension = FileUtil.getExtension(src);
             if (extension.equals("cff")) {
@@ -155,9 +155,9 @@ public class Huffman implements Compressor {
                                 }
                                 s = pad + s;
                             }
-                            bits.append(s);                        }
-                        String dcomp = getString(root, bits.toString());
-                        dos.writeBytes(dcomp);
+                            bits.append(s);
+                        }
+                        write(dos, root, bits.toString());
                     }
 
                     dis.close();
@@ -269,10 +269,8 @@ public class Huffman implements Compressor {
      *
      * @param root the root of the Huffman Tree.
      * @param bits the string of bits.
-     * @return the string generated from {@code root} and {@code bits}
      */
-    private String getString(Node root, String bits) {
-        StringBuilder s = new StringBuilder();
+    private void write(DataOutputStream dos, Node root, String bits) throws IOException {
         Node n = root;
         for (int i = 0; i < bits.length(); i++) {
             switch (bits.charAt(i)) {
@@ -286,12 +284,11 @@ public class Huffman implements Compressor {
                     throw new IllegalArgumentException("Bit string contains illegal characters");
             }
             if (n.isLeaf()) {
-                s.append((char)n.character);
+                dos.writeByte(n.character);
                 n = root;
             }
         }
         if (n != root) System.out.println("Unfinished bits");
-        return s.toString();
     }
 
     /**
