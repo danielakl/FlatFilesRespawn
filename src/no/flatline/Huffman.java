@@ -44,7 +44,6 @@ public class Huffman implements Compressor {
                         maxFreq = aFreq;
                     }
                 }
-                if (maxFreq == 0) throw new IllegalArgumentException("Wut");
                 byte first = (byte) (1 + Long.toBinaryString(maxFreq).length() / 8);
                 dos.writeByte(first);
                 for (int i = 0; i < freq.length; i++) {
@@ -221,7 +220,7 @@ public class Huffman implements Compressor {
      * @param s is the compressed string at the current location in the Huffman Tree.
      * @param table is a table with all the used characters.
      */
-    private void buildTableImpl(final Node node, final String s, final Map<Byte, String> table){
+    private void buildTableImpl(final Node node, final String s, final Map<Byte, String> table) {
         if (!node.isLeaf()) {
             buildTableImpl(node.leftChild, s + '0', table);
             buildTableImpl(node.rightChild, s + '1', table);
