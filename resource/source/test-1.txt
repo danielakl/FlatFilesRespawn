@@ -1,0 +1,2 @@
+Dette er en test for komprimeringen av filer.
+Dette er ekstra tekst for å gjøre filstørrelsen stø
