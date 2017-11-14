@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * @author Joppe
+ * @author Joakim Sæther
  * @author Daniel Klock
  * @author Roy Åne Sylthe
  * @version 0.1.1

@@ -15,7 +15,10 @@ import static java.lang.Math.min;
  * @author Daniel Klock
  * @author Joakim Sæther
  * @author Kristoffer Arntzen
- * @version 0.0.2
+ * @author August Indal
+ * @author Roy Åne Sylthe
+ * @version 1.0.0
+ * @since 0.0.1
  */
 public class Huffman implements Compressor {
 
@@ -31,7 +34,7 @@ public class Huffman implements Compressor {
         if (src.isFile() && src.canRead()) {
             try {
                 DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-                File compFile = FileUtil.createFile(src.getParent(), src.getName(), "cff");
+                File compFile = FileUtil.createFile("resource/compressed", src.getName(), "cff");
                 DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compFile)));
 
                 /* First write frequency array */
@@ -124,7 +127,7 @@ public class Huffman implements Compressor {
             if (extension.equals("cff")) {
                 try {
                     DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(src)));
-                    File dcompFile = FileUtil.createFile(src.getParent(), FileUtil.getBaseName(src).replace(".txt", "v2.txt"));
+                    File dcompFile = FileUtil.createFile("resource/decompressed", FileUtil.getBaseName(src));
                     DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dcompFile)));
 
                     byte first = dis.readByte();

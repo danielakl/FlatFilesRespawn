@@ -1,5 +1,8 @@
 package no.flatline;
 
+import no.flatline.file.FileUtil;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.*;
@@ -12,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Daniel Klock
+ * @author Rolv-Arild Braaten
  * @version 0.1.0
  */
 public class HuffmanTest {
@@ -25,7 +29,7 @@ public class HuffmanTest {
      * Clears test file directory before initializing class.
      * @throws Exception - Throws any exception.
      */
-//    @BeforeClass
+    @BeforeClass
     public static void initialSetUp() throws Exception {
         System.out.println("Running initial setup for Huffman Tests.");
         File[] testFiles = DIRECTORY.toFile().listFiles();
@@ -47,7 +51,7 @@ public class HuffmanTest {
      * Generate temporary files to use within the tests.
      * @throws Exception - Throws any exception.
      */
-//    @Before
+    @Before
     public void setUp() throws Exception {
         System.out.println("\nRunning setup for a test.");
         FILE_1 = Files.createTempFile(DIRECTORY, "test-1-", ".txt").toFile();
@@ -73,6 +77,8 @@ public class HuffmanTest {
         Huffman h = new Huffman();
         long size = FILE_1.length();
         h.compress(FILE_1);
+        String ex = FileUtil.getExtension(FILE_1);
+        File newFile = new File(FILE_1.getPath().replace(ex, "v2" + ex));
         assertTrue(FILE_1.length() < size);
     }
 

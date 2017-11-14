@@ -4,7 +4,8 @@ import java.io.File;
 
 /**
  * @author Rolv-Arild Braaten
- * @version 0.0.1
+ * @since 0.0.1
+ * @version 1.0.0
  */
 public interface Compressor {
 
